@@ -62,7 +62,7 @@ core i7 支持48位（256T）虚拟地址空间 和 52位的物理地址空间
 
 可以看到，如果VPN命中了TLB，直接回返回PPN （physical page number）
 
---
+*****
 Linux为每一个进程维护一个虚拟地址空间：
 ![5.png](./images/5.png)
 
