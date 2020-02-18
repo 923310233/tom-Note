@@ -1,62 +1,94 @@
-![1.png](./images/1.jpg)
-
-浏览器 开发者工具中的Doc是请求的主页面
-其中的Remote Address就是Web 服务器的IP地址
 
 
-## HTTP
-HTTP referer **告知服务器该请求的来源**
-301/302 跳转的状态码
+哪些地方可以运行JS
+1. <script>标签之前
+2. 事件属性中
+![8.png](./images/8.jpg)
 
 
-set cookie: Set-Cookie 被用来由服务器端向客户端发送 cookie
+DOM将文档转成树形结构
+1. 更直观地了解页面元素
+2. 通过js对HTML进行任意操作
+![7.png](./images/7.jpg)
 
-会话期 cookie:
-会话期 cookies 将会在客户端关闭时被移除。 会话期 cookie 不设置 Expires 或 Max-Age 指令。
-```Set-Cookie: sessionid=38afes7a8; HttpOnly; Path=/
+ 通过JS+DOM访问和操作HTML文档
+ 
+ 
+ JavaScript BOM:Browser Object Model
+ 获取浏览器 和操作浏览器
+ 
+ 警告alert()  确认 confirm() 提示prompt()常用于简单的调试和信息展示
+ 
 ```
+<!---->写入cookie
+document.cookie =" =   "
 
-持久化 cookie:
-持久化 Cookie 不会在客户端关闭时失效，而是在特定的日期（Expires）或者经过一段特定的时间之后（Max-Age）才会失效。
-```Set-Cookie: id=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly
+<!---->
+alert(document.cookie)
+``` 
+
+*****
+![6.png](./images/9.jpg)
+
+## XSS
+跨站脚本攻击: Cross Site Scripting
+是一种针对前端的注入，插入恶意脚本
+
+存储型XSS
+<image src=a onerror=alert(/xss/)>
+![9.png](./images/9.jpg)
+![11.png](./images/11.jpg)
+![12.png](./images/12.jpg)
+
+反射型XSS
+```<?php
+echo $_GET["name"];
+?>
 ```
+![12.png](./images/13.jpg)
 
 
 
-## HTTPS
-HTTPS: HTTP over SSL
+DOM型
+浏览器通过JS从URL中获得XSS脚本内容写入DOM中
 
-HTTP 标准端口是 80 ，而 HTTPS 的标准端口是 443
-在 OSI 网络模型中，HTTP 工作于应用层，而 HTTPS 工作在传输层
-HTTP 无需加密，而 HTTPS 对传输的数据进行加密
-HTTP 无需证书，而 HTTPS 需要认证证书
-
-HTTPS 如何工作?
-使用 HTTPS 连接时，服务器要求有**公钥和签名的证书**。
-
-当使用 https 连接，服务器响应初始连接，并提供它所支持的加密方法。作为回应，客户端选择一个连接方法，并且客户端和服务器端交换证书验证彼此身份。完成之后，在确保使用相同密钥的情况下传输加密信息，然后关闭连接。为了提供 https 连接支持，服务器必须有一个公钥证书，该证书包含经过证书机构认证的密钥信息，大部分证书都是通过第三方机构授权的，以保证证书是安全的。
-
-HTTPS解决的问题：
-1. 信任主机的问题. 采用https 的server 必须**从CA 申请一个用于证明服务器用途类型的证书**. 改证书只有用于对应的server 的时候,客户度才信任次主机. 所以目前所有的银行系统网站,关键部分应用都是https 的. 客户通过信任该证书,从而信任了该主机.
-
-2. 通讯过程中的数据的泄密和被窜改
-
-a) 主要目的是保证server 就是他声称的server. 这个跟第一点一样.
-b) 服务端和客户端之间的所有通讯,都是加密的.
-i. 具体讲,是客户端产生一个对称的密钥,通过server 的证书来交换密钥. 一般意义上的握手过程.
-ii. 加下来所有的信息往来就都是加密的. 第三方即使截获,也没有任何意义.因为他没有密钥. 当然窜改也就没有什么意义了.
-2. 少许对客户端有要求的情况下,会要求客户端也必须有一个证书.
-a) 这里客户端证书,其实就类似表示个人信息的时候,除了用户名/密码, 还有一个CA 认证过的身份. 应为个人证书一般来说上别人无法模拟的,所有这样能够更深的确认自己的身份.
-b) 目前少数个人银行的专业版是这种做法,具体证书可能是拿U盘作为一个备份的载体.
-
-
-a) 本来简单的http协议,一个get一个response. 由于https 要还密钥和确认加密算法的需要.单握手就需要6/7 个往返.  
-i. 过多的round trip影响性能.
-
-b) 接下来才是具体的http协议,每一次响应或者请求, 都要求客户端和服务端对会话的内容做加密/解密.
-i. 尽管对称加密/解密效率比较高,可是仍然要消耗过多的CPU,为此有专门的SSL 芯片. 如果CPU 信能比较低的话,肯定会降低性能,从而不能serve 更多的请求.
-ii. 加密后数据量的影响. 所以，才会出现那么多的安全认证提示
+而反射型XSS是后端程序将XSS脚本写入反射页面中
 
 
 
+URL的Hash
 
+## CSRF
+跨站请求伪造
+iframe嵌入可以提高攻击的隐蔽性
+![csrf.png](./images/CSRF.jpg)
+
+
+## 点击劫持
+iframe 内联框架
+![15.png](./images/15.jpg)
+
+display属性：block以区块的方式显示
+一般为none
+
+这样可以让自己的网站和别的网站看起来一样
+![16.png](./images/16.jpg)
+
+
+点击劫持=UI覆盖攻击
+诱导用户进行点击
+
+
+## URL跳转漏洞
+![17.png](./images/17.jpg)
+
+## SQL注入——服务端安全问题
+
+![sql.png](./images/sql.jpg)
+
+union select 
+UNION 操作符用于合并两个或多个 SELECT 语句的结果集。
+注意，UNION 内部的 SELECT 语句必须拥有相同数量的列。
+
+
+curl的作用：发送HTTP请求
