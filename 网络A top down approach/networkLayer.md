@@ -93,11 +93,11 @@ DHCP allows a host to obtain (be allocated) an IP address automatically
 
 
 the DHCP protocol is a four-step proces
-1. DHCP server discovery.：新到达的主机的首要任务是找到要与之交互的DHCP服务器。 **DHCP discover message, which a client sends within a UDP packet to port 67**.  但是此时还没有连入网络，还不知道IP，但是该数据报应该发送给谁？所以DHCP客户端将创建一个IP数据报，其中包含DHCP server discovery message以及广播目标IP地址255.255.255.255和“此主机”源IP地址0.0.0.0。链路层将该帧广播到连接到子网的所有节点
+1. DHCP server discovery.：新到达的主机的首要任务是找到要与之交互的DHCP服务器。 **DHCP discover message, which a client sends within a UDP packet to port 67**.  但是此时还没有连入网络，还不知道IP，但是该数据报应该发送给谁？所以DHCP客户端将创建一个IP数据报，其中包含DHCP server discovery message以及广播目标**IP地址255.255.255.255和“此主机”源IP地址0.0.0.0**。链路层将该帧广播到连接到子网的所有节点
 
 2. DHCP server offer：DHCP服务器使用DHCP offer 消息响应客户端，**该消息将广播到子网中的所有节点，再次使用IP广播地址255.255.255.255**。  为什么还需要广播呢———因为子网上可以存在多个DHCP服务器  。每条offer消息均包含接收到的发现消息的事务ID，为客户端建议的IP地址，网络掩码以及IP地址租用时间（该IP地址将有效的时间）
 
-3. DHCP request：新到达的客户端将从一个或多个offer 中进行选择，并以DHCP请求消息响应其选择的提议，并回显配置参数。choose from among one or more server offers and respond to its selected offer with a DHCP request message,
+3. DHCP request：新到达的客户端将从一个或多个offer 中进行选择，并以DHCP请求消息响应其选择的提议，并回显配置参数。**choose from among one or more server offers and respond to its selected offer with a DHCP request message**,
 
 4. DHCP ACK：服务器用DHCP ACK消息响应DHCP请求消息，确认请求的参数。
 
@@ -126,4 +126,29 @@ WAN : Wide area network
 当数据包通过IDS时，IDS尝试将标头字段和有效负载与其签名数据库中的签名进行匹配。如果找到这样的匹配项，则会创建警报。
 会在第八章继续讨论
 
+
+
+
+### TODO:ICMP
+
+在IP通信中，经常有数据包到达不了对方的情况。原因是，在通信途中的某处的一个路由器由于不能处理所有的数据包，就将数据包一个一个丢弃了。在错误发生的现场，为了联络而飞过来的信鸽就是ICMP 报文。
+
+RFC792 的开头部分里写着“ICMP 是IP 的不可缺少的部分，所有的IP 软件必须实现ICMP协议。也是，ICMP 是为了分担IP 一部分功能而被制定出来的。
+
+在RFC，将ICMP 大致分成两种功能：**差错通知和信息查询**。
+
+**ICMP 的内容是放在IP 数据包的数据部分里来互相交流的。**
+
+#### ICMP实现之MTU
+![411.png](./images/411.png)
+首先，向通信对方送IP 数据包时，**先设置IP 首部的分片禁止标志然后再送**。这是路径MTU 探索的基本。假如，发送方将大于1000 字节的数据包送了出去，通信路径上有MTU 从1500 字节变成1000 字节的地方。因此，那个路由器将不允许超过1000 字节的数据包通过。**路由器尝试着将IP 数据包分片**。但是因为数据包的分片禁止标志是有效的，所以不能分片。该路由器就将该IP 数据包丢弃，**并用ICMP 通知送信方“想分片，但不能分片”**。路由器将在数据选项部里填入不分片就能通过的MTU 大小。发送方收到该ICMP 报文后就知道了不分片就能够传送的数据大小
+
+#### ICMP实现之ping命令
+
+客户端：ICMP echo message
+服务端：ICMP echo reply message
+
+在规定的时候间内，源主机如果没有接到 ICMP 的应答包，则说明目标主机不可达；如果接收到了 ICMP 应答包，则说明目标主机可达。此时，源主机会检查，用当前时刻减去该数据包最初从源主机上发出的时刻，就是 ICMP 数据包的时间延迟。
+ 
+ 这只是最简单的，同一个局域网里面的情况。如果跨网段的话，还会涉及网关的转发、路由器的转发等等。但是对于 ICMP 的头来讲，是没什么影响的。会影响的是根据目标 IP 地址，选择路由的下一跳，还有每经过一个路由器到达一个新的局域网，需要换 MAC 头里面的 MAC 地址。
 
