@@ -259,9 +259,6 @@ b.attach_uprobe(name="/usr/bin/python", sym="main", fn_name="do_main")
 ```
 
 
-
-
-
 在最新版本的Apache（2.x）中，请求由多个进程提供服务，这些进程本身可以具有多个工作线程。每个线程一次处理一个连接。当请求进入系统时，core_create_conn函数会创建一个应用程序级（conn连接）对象以包含该对象，然后再将请求分派给工作线程。
 
 
@@ -276,4 +273,15 @@ b.attach_uprobe(name="/usr/bin/python", sym="main", fn_name="do_main")
 #        - event: 'ap_process_http_sync_connection'
 #          in_fn_name: 'ap_map_tid_to_rid'
 #          ret_fn_name: 'ap_unmap_tid_to_rid'
+```
+
+
+
+问题：kmeans算法训练出来的model怎么给eBPF
+```
+#Train kmeans
+self.FD.train_model(x_train=X_train)
+
+#Share the (scaled) centroids with  the eBPF programs
+model = self.FD.model
 ```
