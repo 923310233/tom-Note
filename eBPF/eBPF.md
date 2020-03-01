@@ -293,3 +293,26 @@ tcpdump -i em1 port 22 -dd
 
 
 
+## 6 Evaluation
+FINELAME的评估结果。
+1.开销。与没有监视或应用程序内的工具相比，FINELAME的开销
+2.准确性。FINELAME的能力能够准确检测应用程序尚未见过的真实攻击
+
+
+Apache和Node.js都被配置为提供一组Wikipedia页面。 Node.js解析请求URI中提供的正则表达式，以查找要提供的文件的路径。它的解析器liburi容易受到ReDoS攻击。所有应用程序对连接施加20秒的超时。我们在DeDoS中部署了一个简单的Web服务器，该服务器可以处理三种类型的请求：处理Wikipedia文章，处理在POST请求中上载的随机生成的XML文件以及解析正则表达式。
+
+
+### 6.3.1 Attacks
+6.3.1 Attacks
+我们的实验旨在量化攻击对服务质量的影响。因此，我们会调整攻击强度，以使它们不会导致服务器瘫痪，而会降低提供给合法用户的服务质量。
+Billion Laughs：攻击由填充了多层嵌套实体的XML文件组成。解析成本与文档的深度成指数比例。其影响类似于ReDoS攻击。
+
+其余的两个攻击略。
+
+6.3.2 异常 Detection Performance
+we set τ to be the outermost point for each cluster in the training set, i.e.
+
+τ的选择至关重要，too low a value can result in a large amount of false positive, while too high a value can induce a large amount of false negative.
+
+
+
