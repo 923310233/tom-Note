@@ -14,7 +14,7 @@ DDoS缓解小组有时被称为“数据包丢弃者”。当其他团队开发�
 
 Dropping packets hitting our servers, as simple as it sounds, **can be done on multiple layers**.每种技术都有其优点和局限性。在此博客文章中，我们将回顾到目前为止我们尝试过的所有技术。
 
- 
+![0.png](./images/layers.jpeg) 
 
 ## Test bench
 

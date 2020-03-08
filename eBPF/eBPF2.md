@@ -75,130 +75,33 @@ except KeyboardInterrupt:
 
 
 
-##
+## nodejs USDT
+
+必须要确保Node.js has built-in USDT (user statically-defined tracing) probes for performance analysis and debugging
+
+
+
+先装一个Dtrace
 
 ```
-from __future__ import print_function
-from bcc import BPF
-from bcc.utils import printb
-
-REQ_WRITE = 1		# from include/linux/blk_types.h
-
-# load BPF program
-b = BPF(text="""
-#include <uapi/linux/ptrace.h>
-#include <linux/blkdev.h>
-BPF_HASH(start, struct request *);
-void trace_start(struct pt_regs *ctx, struct request *req) {
-	// stash start timestamp by request ptr
-	u64 ts = bpf_ktime_get_ns();
-	start.update(&req, &ts);
-}
-void trace_completion(struct pt_regs *ctx, struct request *req) {
-	u64 *tsp, delta;
-	tsp = start.lookup(&req);
-	if (tsp != 0) {
-		delta = bpf_ktime_get_ns() - *tsp;
-		bpf_trace_printk("%d %x %d\\n", req->__data_len,
-		    req->cmd_flags, delta / 1000);
-		start.delete(&req);
-	}
-}
-""")
-
-if BPF.get_kprobe_functions(b'blk_start_request'):
-        b.attach_kprobe(event="blk_start_request", fn_name="trace_start")
-b.attach_kprobe(event="blk_mq_start_request", fn_name="trace_start")
-b.attach_kprobe(event="blk_account_io_completion", fn_name="trace_completion")
-
-# header
-print("%-18s %-2s %-7s %8s" % ("TIME(s)", "T", "BYTES", "LAT(ms)"))
-
-# format output
-while 1:
-	try:
-		(task, pid, cpu, flags, ts, msg) = b.trace_fields()
-		(bytes_s, bflags_s, us_s) = msg.split()
-
-		if int(bflags_s, 16) & REQ_WRITE:
-			type_s = b"W"
-		elif bytes_s == "0":	# see blk_fill_rwbs() for logic
-			type_s = b"M"
-		else:
-			type_s = b"R"
-		ms = float(int(us_s, 10)) / 1000
-
-		printb(b"%-18.9f %-2s %-7s %8.2f" % (ts, type_s, bytes_s, ms))
-	except KeyboardInterrupt:
-		exit()
+sudo apt-get install systemtap-sdt-dev 
 ```
 
+直接送官网下载下来的nodejs好像不能用
 
+手动来 built Node.js :
+
+http://nodejs.org/dist/v8.15.0/
 
 ```
-BPF_HASH(start, struct request *);
+ wget https://nodejs.org/dist/v6.7.0/node-v6.7.0.tar.gz
+  tar xvf node-v6.7.0.tar.gz
+ cd node-v6.7.0
+  ./configure --with-dtrace
+  make -j8
 ```
 
-This creates a hash named `start` where the key is a `struct request *`, and the value defaults to u64. This hash is used by the disksnoop.py example for saving timestamps for each I/O request, where the key is the pointer to struct request, and the value is the timestamp.
+make -j8 因为我是8核CPU
 
+ 最重要的是必须加上--with-dtrace, 让他支持Dtrace, 即为用户态的tracepoint
 
-
-```trace_start（struct pt_regs * ctx，struct request * req）```：此函数稍后将附加到kprobes。 kprobe函数的参数是struct pt_regs * ctx（用于寄存器和BPF上下文），然后是该函数的实际参数。我们将其附加到blk_start_request（），其中第一个参数是struct request *。
-
-
-
-```start.update（＆req，＆ts）```：我们使用指向请求结构的指针作为哈希中的键。这在跟踪中很常见。指向结构的指针非常有用，因为它们是唯一的：两个结构不能具有相同的指针地址。 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-else
-
-kprobe: kprobe是一种内核调试方式，可以在内核执行代码位置中断，并执行我们插入的代码**。
-
-注意,这是Linux中的kprobe, 与上文所说的kprobe并没有关系.
