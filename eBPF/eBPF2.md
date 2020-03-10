@@ -42,39 +42,6 @@ kprobes的最大缺点是它们没有定义的接口，因此，每当出现新�
 
 
 
-## hello
-
-```
-from __future__ import print_function
-from bcc import BPF
-
-prog = """
-int hello(void *ctx) {
-  bpf_trace_printk("Hello, World!\\n");
-  return 0;
-}
-"""
-b = BPF(text=prog)
-b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
-print("PID MESSAGE")
-try:
-    b.trace_print(fmt="{1} {5}")
-except KeyboardInterrupt:
-    exit()
-```
-
-每次在系统调用clone发生的时候都会执行 hello();
-
-![802.png](./images/802.png)
-
-**If you need to define some helper function that will not be executed on a probe, they need to be defined as `static inline` in order to be inlined by the compiler. **
-
-`b.trace_fields()`: Returns a fixed set of fields from trace_pipe. Similar to trace_print()
-
-
-
-
-
 ## nodejs USDT
 
 必须要确保Node.js has built-in USDT (user statically-defined tracing) probes for performance analysis and debugging
@@ -89,7 +56,9 @@ sudo apt-get install systemtap-sdt-dev
 
 直接送官网下载下来的nodejs好像不能用
 
-手动来 built Node.js :
+
+
+手动 built Node.js :
 
 http://nodejs.org/dist/v8.15.0/
 
@@ -104,4 +73,10 @@ http://nodejs.org/dist/v8.15.0/
 make -j8 因为我是8核CPU
 
  最重要的是必须加上--with-dtrace, 让他支持Dtrace, 即为用户态的tracepoint
+
+
+
+
+
+## 
 
