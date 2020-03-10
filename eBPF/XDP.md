@@ -1,10 +1,5 @@
 # 网卡收包流程（内核）
 
-![901.png](./images/901.png)
-
-![902.png](./images/902.png)
-
-
 ## 主要的数据结构
 
 有3个数据结构在网卡收包的流程中是最主要的角色，它们是：sk_buff，softnet_data, net_device。
