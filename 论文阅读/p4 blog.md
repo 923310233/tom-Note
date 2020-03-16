@@ -1,4 +1,5 @@
 # P4
+![a.png](./images/a.png)
 
 ## differences between P4 and OpenFlow
 https://p4.org/p4/clarifying-the-differences-between-p4-and-openflow.html
@@ -149,7 +150,23 @@ packet.emit(hdr.ipv4);
 }
 ```
 
+**P4语言可用于实现任何类型的数据平面协议**。尽管它有一些局限性，但它是一项强大的技术，可供网络研究人员用来对新的网络协议进行原型设计和测试。
 
+Ok, P4 gives the tool to program the data plane, but what about a control plane? In fact, you can use any language to listen to the packets being sent from data plane. However, I believe the most simple to use is Python. It comes with the library named scapy. Scapy allows you to parse network packets received on sockets as well as construct new packets as simply as in the below example:
+
+好的，P4提供了对数据平面进行编程的工具，但是控制平面呢？
+实际上，**you can use any language to listen to the packets being sent from data plane**。但是，我认为最容易使用的是Python。它带有一个名为scapy的库。 Scapy允许您解析在套接字上接收到的网络数据包以及构造新数据包
+
+
+根据我的经验，Scapy是一个用户友好的库，**可用于实现控制平面应用程序**或从主机设备生成自定义数据包。
+
+
+P4语言允许我们对数据平面进行编程，而Python是实现原型网络的控制平面的推荐语言。瞧！现在，问题是如何**大规模模拟真实网络**？ **BMv2交换机（作为P4软件交换机）已与Mininet很好地集成在一起**。因此，您可以在本地计算机上创建任意大小的虚拟网络！我使用Mininet已有近四年的时间来试验SDN和OpenFlow –它是一个非常强大的工具，可简化网络研究人员的工作！
+
+
+
+
+https://scapy.readthedocs.io/en/latest/introduction.html#quick-demo
 
 
 
