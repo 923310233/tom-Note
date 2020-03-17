@@ -62,10 +62,10 @@ eBPF programs are inserted into the kernel using hooks; their execution is trigg
 2.4 XDP: eXpress Data Path
 最初，XDP的设计 to prevent denial-of-service attacks by quickly deciding whether a packet should be dropped, before too many kernel resources have been allocated。在DMA引擎从网络卡复制数据包之后，XDP程序可以检查网络数据包，还可以访问eBPF map。
 
-XDP DROP the packet should be immediately dropped,
-XDP TX bounce the received packet back on the same port it arrived on,XDP TX将收到的数据包反弹到到达的同一端口
-XDP PASS continue to process the packet using the normal kernel network stack,
-XDP REDIRECT forward the packet to another port.
+1. XDP DROP the packet should be immediately dropped,
+2. XDP TX bounce the received packet back on the same port it arrived on,XDP TX将收到的数据包反弹到到达的同一端口
+3. XDP PASS continue to process the packet using the normal kernel network stack,
+4. XDP REDIRECT forward the packet to another port.
 
 
 ### 2.5 Comparison of P4 and eBPF
@@ -74,12 +74,41 @@ P4被设计为用于编程交换设备的语言，主要在网络堆栈的L2和L
 eBPF同样有许多P4的不足之处。通常，尽管P4和eBPF可以执行相对简单的数据包过滤/重写，但**两种语言都不足以实现完整的end-point 网络堆栈**。表1比较了P4和eBPF的局限性。
 
 ##  3、Compiling P4 to eBPF
-在本节中，我们描述了两个开源编译器，它们将P4程序转换为风格化的C，然后可以使用LLVM eBPF后端将其编译为eBPF程序。
+在本节中，我们描述了两个开源编译器，它们**将P4程序转换为风格化的C，然后可以使用LLVM eBPF后端将其编译为eBPF程序**。
 
-3.1 Packet filters with eBPF
+### The eBPF back-end 
+The eBPF back-end is part of the P4 reference compiler implementation. This back-end targets a relatively simple packet filter architecture. This architecture comprises a parser and a control block; the control block must produce a Boolean value, which indicates whether the packet is accepted or not.
 
 
-Compilation to C is fairly straightforward; the generated C program is always memory-safe, using bounds-checks for all packet accesses. For the entire P4 program a single C function is generated which returns a Boolean value. Table 3 shows how each P4 construct is converted to a C construct. Currently, programs with parser loops are rejected, but a parser loop unrolling pass (under development) will allow such programs to be compiled.
+### 3.2 Packet forwarding with XDP
+
+第二个是P4到C的编译器：P4C-XDP
+该编译器扩展了第3.1节中的eBPF编译器。**It can target either a packet filter, or a packet switch**。
+
+The following listing shows the XDP architectural model targeted by this compiler：
+您可以看到P4 XDP程序可以
+（1）将2.4节中描述的四个结果之一返回内核：
+- XDP DROP
+- XDP TX 
+- XDP PASS
+- XDP REDIRECT
+
+（2）它也可以通过插入，修改或删除header来修改数据包本身。
+
+
+
+4 Testing eBPF programs
+
+The P4 compiler includes a simple language (STF = Simple Testing Framework) to describe input/out- put packets and to populate P4 tables. The STF framework is written in Python.
+
+
+Every packet received goes through the pipeline specified in P4.
+
+
+
+
+
+
 
 
 
