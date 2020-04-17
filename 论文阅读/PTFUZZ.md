@@ -32,6 +32,10 @@ More specifically, we need to record addresses of basic blocks.
 
 
 
+IDA中每一块代码就代表着一个基本块，就是以指令跳转为作划分界限的。
+
+
+
 PTfuzz mainly contains two relevant parts: the main fuzzing loop and the PT infrastructure.
 
 
@@ -46,8 +50,6 @@ As mentioned above, the Processor Trace infrastructure,is created by the main fu
 
 - Record tracing data. After PT is enabled, it will captures program execution information non-stop. And the **PT infrastructure specifies a certain memory space to store tracing data after enabling PT**. Thus PT can **write tracing data in this specific space**.
 - **Decode tracing data**. Our purpose is to find basic block transitions in program execution, so the PT infrastructure decodes the raw tracing data and captures TNT, TIP and FUP packets as described in Section II-C and other relevant information. And basic block transitions are written into the bitmap so the main fuzzing loop can access it and make decisions.  子线程来解码
-
-
 
 
 
