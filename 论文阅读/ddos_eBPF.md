@@ -63,7 +63,6 @@ Event-handler Poisoning (EHP) : 可以在事件驱动的框架中进一步放大
 3. Cross-component Tracking. For instance, if a request causes the triggering of a timeout to an event queue, resources consumed by the initial request parsing and the timeout should both be attributed to the same request.
 
 ## 4 FINELAME设计
-![A1.png](./images/A1.png)
 
 FINELAME consists of three main components:
 1. 程序员注释annotations，用于标记何时处理请求。即使对于复杂的应用程序，FINELAME也只需要几个注释即可将资源利用率正确地分配给请求。
