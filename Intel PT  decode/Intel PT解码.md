@@ -1,3 +1,35 @@
+1. Intel PT records the beginning and the end of trac- ing through PGE and PGD packets, respectively.
+2. Throughout the program execution, Intel PT generates TNT packets to log whether conditional branches are taken (e.g., jcc) 
+3.  and TIP packets to log the targets of indirect branches (e.g., call* and ret).
+
+With such information and the disassembled binary, a software decoder can reconstruct the complete control flow.
+
+It is worth mentioning that direct branches (e.g., call) do not trigger any packets because of their deterministic effects on control flows.
+
+
+
+
+
+To reduce the size of TIP packets, Intel PT compresses the target address if the upper address bytes match the previous address logged, suppressing up to six bytes.
+
+Intel PT outputs packets directly to physical memory to avoid the cost of address translation. For flexibility, it can be configured to use multiple buffers that are not contiguous in the physical address space through a table-like data struc- ture.
+
+
+
+## Indirect branch
+
+In a direct branch, the argument specifies where the address is located. 
+
+An example is 'jump indirect on the r1 register', which means that the next instruction to be executed is at the address in register r1. The address to be jumped to is not known until the instruction is executed. 
+
+An indirect branch can be useful to make a conditional branch
+
+```
+jmp eax
+```
+
+
+
 ![1.png](./images/1.png)
 
 
@@ -49,8 +81,6 @@ PT利用TNT（jnz，je这样的直接调用）、TIP（call，jmp这样的间接
 
 
 ## TNT
-
-![1.png](./images/2.png)
 
 2种事件
 

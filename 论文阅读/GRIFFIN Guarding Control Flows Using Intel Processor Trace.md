@@ -142,3 +142,8 @@ We directly write to the new task’s XSAVES area so that the initialized state 
 
 GRIFFIN在Linux内核中运行。当它解析跟踪缓冲区并为受监视的进程执行控制流检查时，它将在该进程的上下文中运行。
 
+
+
+
+
+Disassembling the same instructions over and over again is *not* efficient since we only need the information about the basic blocks for control-flow reconstruction. The key design question is how to store and look up such infor- mation in an efficient way.
