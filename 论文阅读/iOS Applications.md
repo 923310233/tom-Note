@@ -8,6 +8,22 @@
 
 
 
+
+
+## 总结
+
+First, to collect and analyze apps, we need to download, decrypt, and parse the executable, a process that leverages iTunes’ unique download interface with a special decryption method to expedite app collection. 我们的收集方法只需要使用两个苹果账号和两台越狱的iOS设备，每天就可以下载和解密超过5000个应用，
+
+
+
+Second, to improve the accuracy and efficiency of our vetting results, we write an “addon” which evaluates the network interface on the fly. To expedite the automated analysis, we leverage an on-demand inter-procedural [70] data-flow analysis tool to restore the implicit call introduced by the message dispatch property [24] of Objective-C or SWIFT runtime.
+
+
+
+Third, to deal with the obscure documentation of system and third-party network services, we propose a call stack based collection method that overcomes the limitations of the current class-clustering based third-party library identification [67]. In our method, we first identify system network service APIs by traveling the call stack of each app; then third- party network service libraries can be distinguished through similarity analysis on the runtime call stack.
+
+
+
 ## 介绍
 
 iOS’s network architecture is built on top of BSD sockets. When acting as a resource provider, the app turns the iOS device into a server to provide services to a client once a connection is established. 
@@ -38,9 +54,15 @@ First, to collect and analyze apps, we need to download, decrypt, and parse the 
 
 
 
-*Third*, to deal with the obscure（模糊的;含糊的;不明确） documentation of system and third-party network services, we propose a call stack based collection method that overcomes the limitations of the current class-clustering based third-party library identification [67]. 我们提出了一种基于调用堆栈的收集方法，该方法克服了当前基于 聚 类的第三方库标识的局限性
+Third, to deal with the obscure（模糊的;含糊的;不明确） documentation of system and third-party network services, we propose a call stack based collection method that overcomes the limitations of the current class-clustering based third-party library identification [67]. 我们提出了一种基于调用堆栈的收集方法，该方法克服了当前基于 聚 类的第三方库标识的局限性
 
-In our method, we first identify system network service APIs by traveling the call stack of each app; **then third- party network service libraries can be distinguished through similarity analysis** on the runtime call stack.
+************
+
+
+
+在我们的方法中，我们首先通过travel每个应用的调用栈来识别系统网络服务API；**然后通过对运行时调用栈的相似性分析来区分第三方网络服务库**。
+
+我们从一组1300个应用开始分析，我们将其称为 "种子应用"。种子应用程序用于了解网络服务漏洞的特征，并提取签名，以便对网络服务进行大规模分析。
 
 
 
@@ -48,17 +70,15 @@ In our method, we first identify system network service APIs by traveling the ca
 
 
 
-In addition, the precise call stack of _bind collected by dynamic analysis can be used for the identifica- tion of APIs and libraries.
+```
+In addition, the precise call stack of _bind collected by dynamic analysis can be used for the identification of APIs and libraries. 
+```
 
 
 
-The key contributions of this paper are as follows:
+Knowledge gained from seed apps is then applied to the large-scale analysis, including measuring the distribution of network services of iOS apps, finding the association of network service libraries, and fine-grained analysis on three typical libraries. 
 
-- An efficient iOS app collection tool. To facilitate our analysis, we introduce an iOS app collection tool thanks to the use of the headless-downloader and executable decryption.      The headless-downloader enables us to download .ipa files from iTunes App Store fluently. The executable decryption we developed does not need to upload large .ipa files to iOS devices, install apps, or download en- tire decrypted .ipa files from iOS devices. 两台iOS设备就可以每天解密超过5,000个应用程序，与采用最新技术的方法相比，数据收集的可伸缩性提高了17倍。 [62]。如此庞大的iOS应用程序数据集的收集是重要的资源，并且也是将来研究的有用基准。
 
-- 我们用动态分析来收集每个应用程序的调用堆栈。根据调用堆栈信息，我们通过向后移动（traveling）堆栈来提取系统API，通过比较源自堆栈的令牌来识别第三方网络服务库。By taking signatures of the network services, we systematically characterize network services in iOS ecosystem, including the prevalent 普遍的 usage of network services of iOS apps, the distribution of network services across app categories, and the association of these network services.
-  
-- New vulnerabilities of iOS apps identified. 
 
 
 
@@ -70,16 +90,6 @@ The key contributions of this paper are as follows:
 iOS应用是一个存档文件（即.ipa）which stores an Application Bundle including Info.plist file, executable, resource files, and other support files. 
 
 为了进行数字版权管理（DRM），Apple使用.supp文件，其中包含.ipa文件中的密钥，以对可执行文件进行解密。**The executable in the Application Bundle is encoded in Mach-O format [68] consisting of three parts: Header, Load commands, and Data. **
-
-
-
-Figure 1: The simplified inner structure of a Mach-O file:
-
-![matcho](./images/matcho.png)
-
-The Load commands region of a Mach-O file contains multiple segments and each segment specifies a group of sections. Each section within is parallel, such as the instructions in the __text section, C string in the __cstring section, and Objective-C class object name in the ** __objc_classname section. In particular, instructions in the __text section are encoded with the ARM/THUMB instruction set**. The simplified Mach-O format file is depicted in Figure 1.
-
-
 
 
 
@@ -103,17 +113,7 @@ A bottom-up network service is defined as having “open port,” “communicati
 
 ![networkService](./images/networkService.png)
 
-
-
-As for the architecture of the network service of iOS apps, **both system and third-party network service libraries are directly or indirectly built on top of BSD sockets** (see Figure 3). 
-
-![BSDSocket](./images/BSDSocket.png)
-
-
-
-Figure 3, iOS wrapped the BSD sockets for developers to facilitate the development of network services.  例如，Core Foundation框架中的系统API _CFSocketSetAddress [25]桥接对BSD套接字的访问。基于此API，开发人员可以在网络协议栈的TCP层之上组成各种应用程序，以提供网络服务。
-
-如图3的蓝框所示。通常，第三方库提供的网络服务在网络协议堆栈的应用程序层上运行。
+在iOS应用的网络服务架构方面，无论是系统还是第三方网络服务库，都直接或间接地构建在BSD套接字之上（见图3）。如图3的虚线、粉色方框所示，iOS将BSD套接字封装起来，方便开发者开发网络服务。例如，Core Foundation框架中的系统API _CFSocketSetAddress[25]是访问BSD套接字的桥梁。基于该API，开发者可以在网络协议栈的TCP层之上编译各种应用程序，提供网络服务。此外，还有很多第三方网络服务库可供开发者使用，如图3的蓝框所示。一般来说，第三方库提供的网络服务都是在网络协议栈的应用层上运行的。
 
 
 
@@ -144,21 +144,38 @@ For instance, after connected to the network service of the Waze app, **a client
 
 （ii）通常以通用语言C / C ++编写的“通信协议”执行不当，可能会导致应用程序发生DoS或RCE [5，17，74]。 （iii）“访问控制”不足会导致对网络资源/功能的未经授权的访问。
 
-
-
-
-
-
-
 ![pipeline](./images/pipeline.png)
 
 
+
+## 3 iOS APP 收集的方法
+
+在苹果iTunes上收集应用和元信息并不是一件简单的事情，iTunes对应用收集实施了各种限制，比如为限制自动抓取方法的请求数量设置上限。
+
+Current iOS app downloading methods are UI manipulation [67] and in-device app crawler 。它们通过使用Clutch[6]、dumpdecrypted[10]或Frida[8]扩展frida-ios-dump[20]来解密可执行文件。
+
+
+
+In this section, we describe our method for collecting iOS apps IDs, downloading the .ipa file from iTunes, removing DRM protection to get decrypted executable, and parsing executable. 
+
+我们的方法由以下三个模块组成（见图4的绿框）:
+
+- Collecting IDs and downloading apps from iTunes.  iTunes上的每个iOS应用都有一个唯一的标识符（即ID）。例如，Instagram的唯一标识：389801252，可以通过这个ID从iTunes中访问。基于iTunes搜索API[13]，我们递归地收集ID列表。例如，下面的请求会返回 "生产力 "类别中前20个应用的元信息，如ID和应用名称。
+
+```
+https://itunes.apple.com/search?term=productivity&country=u s&media=software&limit=20.
+```
+
+- Decrypting the executable. 为了研究代码，我们需要对下载的应用的可执行文件进行解密。
+- Parsing the executable. 为了方便后续的分析和分享我们的数据集做进一步的研究，我们使用JTOOL[14]对可执行文件进行解析，并提取相关的元数据，如可执行文件中的类名和字符串。同时也提取了Info.plist中的数据，如 "CFBundleIdentifier "字段中的bundle ID或 "CFBundle- Name "字段中的应用程序名称。
 
 
 
 ## 4 Vetting Methodology
 
 在本节中，我们介绍审查方法（请参见图4的红色框）
+
+In this section, we introduce the vetting methodology (see the red box of Figure 4), which consists of dynamic analysis (cf. § 4.1) to select candidate apps, obtain a call stack from each app, static analysis and manual confirmation (cf. § 4.2) to scrutinize the network services of the candidate apps. 
 
 
 
@@ -172,23 +189,30 @@ Dynamic analysis is used to check for remote accessible net- work interfaces in 
 
 我们利用动态分析来检测应用程序是否提供网络服务。
 
-To provide network services, the standard process in light of POSIX Layer is to
+要提供网络服务，在POSIX层(见图3)的标准流程是：
 
-*(i)* create a socket, 
+(i)创建socket，
 
-*(ii)* bind it to a port, 
+(ii)将其绑定到一个端口，
 
- *(iii)* begin listening for incoming connections on that port. 
+(iii)开始监听该端口上的传入连接。
+
+在这个过程的第二步，即调用_bind API，开发者可以向_bind API传递丰富的参数，表示网络服务的属性，通过指定网络接口为环回，用于本地主机访问，或LAN，用于Wi-Fi/蜂窝网络的远程访问，来限制网络服务的访问范围。
+
+
 
 
 
 To study the interface of a network service, we implement an “addon” for jailbroken越狱的 iOS devices by using Cydia Substrate [72]. 
 
-The “addon” redirects the _bind API calls initiated by each analyzed app to the vetting code.
+**The “addon” redirects the _bind API calls initiated by each analyzed app to the vetting code**.
 
- As discussed in Section 2.3, we only consider remote adversaries because they are more practical threats to the apps. Therefore, by parsing parameters of _bind API, **if the app uses the loopback interface**环路地址不考虑 (e.g., *127.0.0.1*), the vetting code consid-ers the app as safe and terminates the analysis. 
+在这里，通过解析_bind API的参数，如果应用程序使用环回接口(例如127.0.0.1)，审核代码认为应用程序是安全的并终止分析。对于使用局域网接口的应用，例如，开发者将一个参数192.168.1.3传给_bind API，则审核代码在
+"addon "报告该应用可以访问（即候选应用）。之后我们对这些应用进行静态分析，以审核网络服务的安全性。
 
-For the apps that use the LAN interface, for example, a developer passes a parameter *192.168.1.3* to _bind API, the vetting code in “addon” reports the app is accessible (i.e., a candidate app). We later run static analysis on these apps to vet the security of the network service.
+
+
+
 
 
 
@@ -198,27 +222,56 @@ For the apps that use the LAN interface, for example, a developer passes a param
 
 **Call stack extraction.**
 
-**We carry out call stack extraction for generating unique signatures so we can identify system APIs and third-party libraries relevant to network services**. 
+ We carry out call stack extraction for generating unique signatures so we can identify system APIs and third-party libraries relevant to network services. 
 
-
+对于任何活动的应用，iOS都会在一个被称为call stack的数据结构中维护例程的运行时返回地址。图8的左上角方框中描述了充满指针的调用栈，其中指针表示例程执行完成后应该返回的站点。
 
 For any active app, iOS maintains the runtime return address of a routine in a data structure known as the *call stack*. 对 于任何活动的应用程序，iOS在称为“调用堆栈”的数据结构中维护例程的运行时返回地址。
 
-The call stack, filled with pointers, is depicted in the left-top box of Figure 8, where pointers indicate the site to which the routine should return when its execution is completed.  其中的指针指示例程在执行完成后应返回的位置。
 
-由于API bind是设置网络服务的先决条件，因此要分析到达_bind API的呼叫跟踪，在分析网络服务的接口时，我们的“插件”会保留call stac。
 
-The pointer in the call stack varies due to the Address Space Layout Randomization (ASLR) security mechanism of the iOS system. 调用堆栈中的指针因iOS系统的地址空间布局随机化（ASLR）安全机制而异。
+由于API _bind是建立网络服务的前提条件，为了分析到达_bind API的调用跟踪，在分析网络服务的接口时，调用栈被我们的 "插件 "保留了下来。由于iOS系统的地址空间布局随机化(ASLR)安全机制，调用栈中的指针会发生变化。为了将调用栈中的运行时浮动指针映射到静态可执行文件的具体偏移量，保留了可执行文件的ASLR值。
 
-为了将调用堆栈中的运行时浮动指针映射到静态可执行文件的具体偏移量，将保留可执行文件的ASLR值。
+In order to map the runtime floating pointers in the call stack to the concrete offset of the static executable, the ASLR value for the executable is preserved.
 
 
 
-### 4.2静态分析和手动确认
+#### 补充 ASLR：
 
-We note that only network services behind the LAN interface can reach the static code analysis. 
+ASLR (Address Space Layout Randomization)，即地址空间随机布局。大部分主流的操作系统都已实现了 ASLR，以防范对已知地址进行恶意攻击。iOS 从 4.3 开始支持 ASLR，Android 从 4.0 也支持了 ASLR 机制。
 
-通过使用静态分析，通过使用规则进一步缩小候选应用程序的范围。然后手动确认静态分析结果。
+
+
+采用ASLR技术，进程每次启动时，地址空间都会被简单地随机化——只是偏移，不是搅乱。实现方式是通过内核将Mach-O的段“平移”某个随机数。
+
+简单的说，就是让可执行文件在内存中每次运行的初始地址不一样，提高逆向的难度。
+
+
+
+Mach-O 文件的文件头会记录二进制的属性标识，有个 flag 叫做 PIE (Position Independent Enable)。开启了 PIE 的二进制文件，在执行时会产生 ASLR 。
+
+
+
+我们可以使用 otool 工具，来查看任意应用程序二进制文件的属性，以支付宝为例：
+`otool -hv Portal`
+
+![ASLR](/Users/wushuohan/tom-Note/论文阅读/images/ASLR.png)
+
+有 PIE 标识，表示该程序在启动时会产生随机地址布局。
+
+
+
+
+
+
+
+### 4.2 静态分析和手动确认
+
+只有LAN接口后面的网络服务才能达到静态代码分析。动态分析会选择提供网络服务的候选应用，排除使用环回网络接口的应用。接下来，通过静态分析，使用规则进一步缩小候选应用的范围。然后手动确认静态分析结果。
+
+
+
+
 
 
 
